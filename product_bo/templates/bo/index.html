@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <!-- static file
+    <script type="text/javascript" src="./js/jquery-1.11.2.js"></script>
+    <script type="text/javascript" src="./js/jquery-ui-1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="./js/jquery-ui-1.11.4/jquery-ui.css"> 
+    -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  	<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  	<script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+
+    <title>产品列表</title>
+</head>
+<style type="text/css">
+	.header{width:100%;height:60px;background-color: #0078e7;padding: 5px;  font-family: 微软雅黑;}
+	.mt20{margin-top: 20px;}
+	.button-success {background: rgb(28, 184, 65); /* this is a green */}
+	.fileUpload {    position: relative;    overflow: hidden;    margin: 10px;}
+	.fileUpload input.upload {    position: absolute;    top: 0;    right: 0;    margin: 0;    padding: 0;    font-size: 20px;    cursor: pointer;    opacity: 0;    filter: alpha(opacity=0);}
+	td{text-align: center;}
+</style>
+<script type="text/javascript">
+	$(function () {
+		$("#uploadBtn").on('change',function () {
+			$("#uploadFile").val($(this).val());
+		});
+		$("#messageDialog").dialog({
+			autoOpen : false,
+			title : '提示信息'
+		});
+		$("#addProductDialog").dialog({
+			autoOpen : false,
+			title : '添加商品',
+			width : '600px',
+			buttons: [
+			    {
+			      text: "确定",
+			      click: function() {
+			        $( this ).dialog( "close" );
+			        var formData = new FormData($("#productForm" )[0]);
+			  	  	var self = $(this);
+				  	$.ajax({
+				  	  url: '/bo/add' ,
+				  	  type: 'POST',
+				  	  data: formData,
+				  	  async: false,
+				  	  cache: false,
+				  	  contentType: false,
+				  	  processData: false,
+				  	  success: function (returndata) {
+				  	  	if("success" == returndata){
+				  	    	self.dialog("close");
+				  	    	$("#messageDetail").html('添加成功');
+				  	    	$("#messageDialog").dialog('open');
+				  	    	$("#productTable").dataTable().api().draw();
+				  	    	// window.location.reload()
+				  	  		// alert("添加成功");
+				  	  	}
+				  	  },
+				  	  error: function (returndata) {
+				  	      alert(returndata);
+				  	  }
+				  	});
+			      }
+			    },
+			    {
+			      text: "取消",
+			      click: function() {
+			        $( this ).dialog( "close" );
+			      }
+			    }
+		    ]
+		});
+
+		$("#addProductBtn").on("click",function () {
+			$("#addProductDialog").dialog("open");
+		});
+		createTable();
+	});
+
+	function createTable () {
+		$('#productList').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="productTable"></table>' );
+		$("#productTable").dataTable({
+			"dom": 'frt<"bottom"ip><"clear">',
+			"paging" :true,
+		 	"columns": [
+    			{ "title": "编号" ,"data": "pk" },
+    			{ 
+    				"title": "图片" ,
+    				"data": "fields.img_url" ,
+    			  	"render": function ( data, type, full, meta ) {
+     					return '<img src="/media/'+data+'" style="width:150px;"/><br/><span>'+full.fields.product_type+'</span><br/><span>'+full.fields.product_name+'</span>';
+   				  	}
+   				},
+    			{ "title": "产品名" ,"data": "fields.product_name" },
+    			{ "title": "产品型号" ,"data": "fields.product_type" },
+    			{ 
+    				"title": "上传时间" ,"data": "fields.create_time" ,
+    				"render": function ( data, type, full, meta ) {
+     					return data;
+   				  	}
+   				 },
+			],
+			"language" : {
+				"info": "第 _START_ - _END_ 条，共 _TOTAL_ 条",
+				"paginate": {
+     				"previous": "上一页",
+     				"next": "下一页"
+   				},
+   				"search": "搜索:",
+   				"zeroRecords": "没有记录",
+   				"infoEmpty": ""
+			},
+			"serverSide": true,
+			"ajax":{
+				"type":'post',
+				"url":'listProduct',
+				"data": {
+					//post data
+    			}
+			}
+		});
+ 
+	}
+</script>
+<body style="overflow-x:hidden">
+<div class="header">
+	<h2>产品列表</h2>
+</div>
+<div>
+	<button id="addProductBtn" class="pure-button button-success mt20" style="float:right;">添加商品</button>
+</div>
+<div id="productList" class="mt20">
+</div>
+<div id="addProductDialog">
+<form id="productForm" class="pure-form pure-form-aligned" method="post"  enctype="multipart/form-data">
+    <fieldset>
+    	<div class="pure-control-group">
+       		<label for="product_name">产品名称：</label>
+			<input id="product_name" type="text" name="product_name" />
+		</div>
+		<div class="pure-control-group">
+        	<label for="product_type">产品型号：</label>
+			<input id="product_type" type="text" name="product_type" /><br/>
+		</div>
+		<div class="pure-control-group">
+			<label for="product_img">产品图片：</label>
+			<input id="uploadFile" placeholder="Choose File" disabled="disabled" />
+			<span class="fileUpload btn btn-primary">
+			    <span>选择图片</span>
+			    <input id="uploadBtn" type="file" class="upload" name="product_img" />
+			</span>
+		</div>
+    </fieldset>
+</form>
+</div>
+<div id="messageDialog">
+	<p id="messageDetail">
+  	</p>
+</div>
+</body>
+</html>

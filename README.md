@@ -6,10 +6,11 @@
 
 
 ####django安装
-[django1.8](https://www.djangoproject.com/m/releases/1.8/Django-1.8.tar.gz)
--下载后解压，执行setup.py
+-下载：[django1.8](https://www.djangoproject.com/m/releases/1.8/Django-1.8.tar.gz)
+-下载后解压，执行setup.py install
 
 
 ####运行项目
 -进入项目目录 执行manage.py runserver 0.0.0.0:8000
+-打开浏览器访问 http://localhost:8000/bo/photo
 
